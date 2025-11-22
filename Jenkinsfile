@@ -165,7 +165,7 @@ pipeline {
             }
         }
 
-        stage('Deploy to Staging') {
+stage('Deploy to Staging') {
     steps {
         echo '=== Deploying to Staging Environment ==='
         script {
@@ -189,6 +189,7 @@ pipeline {
         }
     }
 }
+
 
 
         stage('Smoke Tests') {
