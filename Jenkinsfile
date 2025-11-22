@@ -166,30 +166,30 @@ pipeline {
         }
 
         stage('Deploy to Staging') {
-
-            steps {
-                echo '=== Deploying to Staging Environment ==='
-                script {
-                    sh '''
-                        echo "Loading environment variables"
-                        set -a
-                        [ -f .env ] && source .env
-                        set +a
-                        
-                        echo "Starting containers with docker-compose"
-                        docker-compose -f docker-compose.yml pull
-                        docker-compose -f docker-compose.yml up -d
-                        
-                        echo "Waiting for services to be healthy"
-                        sleep 10
-                        
-                        # Health check
-                        curl -f http://localhost:5000 || exit 1
-                        curl -f http://localhost:80 || exit 1
-                    '''
-                }
-            }
+    steps {
+        echo '=== Deploying to Staging Environment ==='
+        script {
+            sh '''
+                echo "Loading environment variables"
+                set -a
+                [ -f .env ] && source .env
+                set +a
+                
+                echo "Starting containers with docker-compose"
+                docker-compose -f docker-compose.yml pull
+                docker-compose -f docker-compose.yml up -d
+                
+                echo "Waiting for services to be healthy"
+                sleep 10
+                
+                # Health check
+                curl -f http://localhost:5000 || exit 1
+                curl -f http://localhost:80 || exit 1
+            '''
         }
+    }
+}
+
 
         stage('Smoke Tests') {
             
