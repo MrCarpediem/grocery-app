@@ -146,9 +146,7 @@ pipeline {
         }
 
         stage('Push to Registry') {
-            when {
-                branch 'main'
-            }
+
             steps {
                 echo '=== Pushing Docker Images to Registry ==='
                 script {
@@ -168,9 +166,7 @@ pipeline {
         }
 
         stage('Deploy to Staging') {
-            when {
-                branch 'main'
-            }
+
             steps {
                 echo '=== Deploying to Staging Environment ==='
                 script {
@@ -196,9 +192,7 @@ pipeline {
         }
 
         stage('Smoke Tests') {
-            when {
-                branch 'main'
-            }
+            
             steps {
                 echo '=== Running Smoke Tests ==='
                 script {
