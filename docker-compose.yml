@@ -25,20 +25,23 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
+
+    # ✅ Load backend/.env file (THIS FIXES YOUR SELLER EMAIL ISSUE)
+    env_file:
+      - ./backend/.env
+
+    # Keep only required env here (others come from .env)
     environment:
       MONGO_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password}@mongodb:27017/grocery-app?authSource=admin
-      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key}
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-      SELLER_EMAIL: ${SELLER_EMAIL:-seller@example.com}
       PORT: 5000
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+
     depends_on:
       mongodb:
         condition: service_healthy
+
     volumes:
       - ./backend/uploads:/app/uploads
+
     networks:
       - grocery-network
     restart: unless-stopped
