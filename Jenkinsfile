@@ -8,10 +8,10 @@ pipeline {
     }
 
     environment {
-        DOCKER_REGISTRY = credentials('docker-registry-creds')
+        // Keep image names in environment; Docker registry credentials are handled explicitly
         DOCKER_IMAGE_BACKEND = "grocery-backend:${BUILD_NUMBER}"
         DOCKER_IMAGE_FRONTEND = "grocery-frontend:${BUILD_NUMBER}"
-        REGISTRY_URL = "${env.DOCKER_REGISTRY_USR}" // Set in Jenkins credentials
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -152,14 +152,17 @@ pipeline {
             steps {
                 echo '=== Pushing Docker Images to Registry ==='
                 script {
-                    sh '''
-                        echo ${DOCKER_REGISTRY_PSW} | docker login -u ${DOCKER_REGISTRY_USR} --password-stdin
-                        docker tag ${DOCKER_IMAGE_BACKEND} ${REGISTRY_URL}/${DOCKER_IMAGE_BACKEND}
-                        docker tag ${DOCKER_IMAGE_FRONTEND} ${REGISTRY_URL}/${DOCKER_IMAGE_FRONTEND}
-                        docker push ${REGISTRY_URL}/${DOCKER_IMAGE_BACKEND}
-                        docker push ${REGISTRY_URL}/${DOCKER_IMAGE_FRONTEND}
-                        docker logout
-                    '''
+                    // Use Jenkins credentials of type Username/Password. Create a credential with id 'docker-registry-creds'.
+                    withCredentials([usernamePassword(credentialsId: 'docker-registry-creds', usernameVariable: 'DOCKER_REG_USR', passwordVariable: 'DOCKER_REG_PSW')]) {
+                        sh '''
+                            echo "$DOCKER_REG_PSW" | docker login -u "$DOCKER_REG_USR" --password-stdin
+                            docker tag ${DOCKER_IMAGE_BACKEND} ${DOCKER_REGISTRY_HOST:-$DOCKER_REG_USR}/${DOCKER_IMAGE_BACKEND}
+                            docker tag ${DOCKER_IMAGE_FRONTEND} ${DOCKER_REGISTRY_HOST:-$DOCKER_REG_USR}/${DOCKER_IMAGE_FRONTEND}
+                            docker push ${DOCKER_REGISTRY_HOST:-$DOCKER_REG_USR}/${DOCKER_IMAGE_BACKEND}
+                            docker push ${DOCKER_REGISTRY_HOST:-$DOCKER_REG_USR}/${DOCKER_IMAGE_FRONTEND}
+                            docker logout || true
+                        '''
+                    }
                 }
             }
         }
@@ -216,17 +219,16 @@ pipeline {
     post {
         always {
             echo '=== Cleaning up workspace ==='
+            // Run cleanWs() inside a node block so hudson.FilePath is available
             script {
-                // Ensure cleanup runs on an agent with a workspace (provides hudson.FilePath)
                 node {
                     try {
                         cleanWs()
                     } catch (err) {
-                        echo "cleanWs() failed: ${err}. Attempting fallback delete"
-                        // Fallback: attempt to remove files using shell if node cleanup fails
+                        echo "cleanWs() failed: ${err}. Falling back to shell remove"
                         sh '''
-                            if [ -d "${WORKSPACE}" ]; then
-                              rm -rf "${WORKSPACE:?}"/* || true
+                            if [ -n "${WORKSPACE}" ] && [ -d "${WORKSPACE}" ]; then
+                                rm -rf "${WORKSPACE:?}"/* || true
                             fi
                         '''
                     }
