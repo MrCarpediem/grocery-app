@@ -216,7 +216,22 @@ pipeline {
     post {
         always {
             echo '=== Cleaning up workspace ==='
-            cleanWs()
+            script {
+                // Ensure cleanup runs on an agent with a workspace (provides hudson.FilePath)
+                node {
+                    try {
+                        cleanWs()
+                    } catch (err) {
+                        echo "cleanWs() failed: ${err}. Attempting fallback delete"
+                        // Fallback: attempt to remove files using shell if node cleanup fails
+                        sh '''
+                            if [ -d "${WORKSPACE}" ]; then
+                              rm -rf "${WORKSPACE:?}"/* || true
+                            fi
+                        '''
+                    }
+                }
+            }
         }
 
         success {
