@@ -177,35 +177,15 @@ pipeline {
                         set +a
                         
                         echo "Starting containers with docker-compose"
-                        docker-compose -f docker-compose.yml pull || true
-                        docker-compose -f docker-compose.yml up -d || true
+                        docker-compose -f docker-compose.yml pull
+                        docker-compose -f docker-compose.yml up -d
                         
-                        echo "Waiting for services to be healthy..."
-                        sleep 15
+                        echo "Waiting for services to be healthy"
+                        sleep 10
                         
-                        # Health check - Backend API (with retry logic)
-                        echo "Checking backend API health..."
-                        for i in {1..10}; do
-                          if curl -f http://localhost:5000/api/product/list 2>/dev/null; then
-                            echo "✓ Backend is healthy"
-                            break
-                          else
-                            echo "Attempt $i/10 - Backend not ready, retrying..."
-                            sleep 2
-                          fi
-                        done
-                        
-                        # Health check - Frontend (with retry logic)
-                        echo "Checking frontend health..."
-                        for i in {1..5}; do
-                          if curl -f http://localhost:80 2>/dev/null | grep -q "<!DOCTYPE\|<html"; then
-                            echo "✓ Frontend is healthy"
-                            break
-                          else
-                            echo "Attempt $i/5 - Frontend not ready, retrying..."
-                            sleep 2
-                          fi
-                        done
+                        # Health check
+                        curl -f http://localhost:5000 || exit 1
+                        curl -f http://localhost:80 || exit 1
                     '''
                 }
             }
