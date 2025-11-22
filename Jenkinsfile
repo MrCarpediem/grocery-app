@@ -178,17 +178,21 @@ stage('Deploy to Staging') {
                 echo "Starting containers with docker-compose"
                 docker-compose -f docker-compose.yml pull
                 docker-compose -f docker-compose.yml up -d
-                
+
                 echo "Waiting for services to be healthy"
                 sleep 10
-                
-                # Health check
-                curl -f http://localhost:5000 || exit 1
+
+                # Correct backend health check
+                curl -f http://localhost:5000/api/product/list || exit 1
+
+                # Frontend health check
                 curl -f http://localhost:80 || exit 1
             '''
         }
     }
 }
+
+
 
 
 
