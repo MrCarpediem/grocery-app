@@ -197,14 +197,13 @@ pipeline {
                 echo '=== Running Smoke Tests ==='
                 script {
                     sh '''
-                        echo "Testing Backend API endpoints..."
-                        curl -s -f http://localhost:5000/api/product/list && echo "✓ Backend product list OK" || (echo "✗ Backend product list FAILED" && exit 1)
+                        echo "Testing Backend API"
+                        curl -f http://localhost:5000/api/product/list || exit 1
                         
-                        echo "Testing Frontend..."
-                        curl -s -f http://localhost:80 | grep -q "<!DOCTYPE\|<html" && echo "✓ Frontend OK" || (echo "✗ Frontend FAILED" && exit 1)
+                        echo "Testing Frontend"
+                        curl -f http://localhost:80 || exit 1
                         
-                        echo ""
-                        echo "=== All smoke tests passed ==="
+                        echo "Smoke tests passed"
                     '''
                 }
             }
@@ -240,11 +239,7 @@ pipeline {
             echo '=== Pipeline failed ==='
             script {
                 sh '''
-                    echo "=== Docker Compose Logs (last 50 lines) ==="
-                    docker-compose -f docker-compose.yml logs --tail=50 || true
-                    echo ""
-                    echo "=== Running containers ==="
-                    docker ps -a || true
+                    docker-compose -f docker-compose.yml logs
                 '''
             }
             // Optional: Send failure notification
