@@ -22,5 +22,4 @@ RUN mkdir -p /app/uploads
 EXPOSE 5000
 
 ENTRYPOINT ["dumb-init", "--"]
-
 CMD ["node", "index.js"]
