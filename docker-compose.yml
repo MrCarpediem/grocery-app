@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:7
@@ -24,7 +22,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
 
     # ✅ Load backend/.env file (THIS FIXES YOUR SELLER EMAIL ISSUE)
     env_file:
