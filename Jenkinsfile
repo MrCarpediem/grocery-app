@@ -174,23 +174,29 @@ stage('Deploy to Staging') {
                 set -a
                 [ -f .env ] && source .env
                 set +a
-                
-                echo "Starting containers with docker-compose"
+
+                echo "Stopping old containers"
+                docker-compose -f docker-compose.yml down || true
+
+                echo "Pulling latest images"
                 docker-compose -f docker-compose.yml pull
-                docker-compose -f docker-compose.yml up -d
+
+                echo "Starting containers with docker-compose"
+                docker-compose -f docker-compose.yml up -d --build
 
                 echo "Waiting for services to be healthy"
                 sleep 10
 
-                # Correct backend health check
+                echo "Checking Backend Health"
                 curl -f http://localhost:5000/api/product/list || exit 1
 
-                # Frontend health check
+                echo "Checking Frontend Health"
                 curl -f http://localhost:80 || exit 1
             '''
         }
     }
 }
+
 
 
 
